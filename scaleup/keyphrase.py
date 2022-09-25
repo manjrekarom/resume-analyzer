@@ -29,6 +29,8 @@ def set_to_set_match(query_kp, candidate_kp, model, threshold=0.6):
             relevant.append((candidate_kp[i][1], val))
         else:
             irrelevant.append((candidate_kp[i][1], val))
+    relevant.sort(key=lambda x: x[1], reverse=True)
+    irrelevant.sort(key=lambda x: x[1], reverse=True)
     return relevant, irrelevant
 
 

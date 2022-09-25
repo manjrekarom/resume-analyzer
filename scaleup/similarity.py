@@ -64,4 +64,4 @@ class LM(Similarity):
 
     def similarity(self, query: List[str], candidates) -> np.ndarray:
         query_emb = self.model.encode(query)
-        return cosine_similarity(query_emb, self.project_embeddings)
+        return cosine_similarity(query_emb, candidates)

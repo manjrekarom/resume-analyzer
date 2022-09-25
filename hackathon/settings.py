@@ -117,9 +117,14 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+DATASETS_PATH = './datasets'
+
 SIMILARITY = 'TFIDF'  # other values (not implemented): 'BM25', 'msmarco(-MiniLM-L-6-v3)'
 KEYPHRASE = 'RAKE'  # other values (not implemented): 'KeyBERT'
 TOP_P = 0.8
 KP_THRESHOLD = 0.55  # high precision
 KP_LM = 'all-MiniLM-L6-v2'
 PROJECT_RECOMMENDER = 'LM'  # other values (not implemented): 'TF-IDF'
+RECOMMENDER_LM = 'msmarco-MiniLM-L-6-v3'
+PROJECTS_PER_SKILL = 2
+MAX_IRREL_SKILLS = 3

@@ -1,6 +1,7 @@
 import os
 from urllib.request import HTTPRedirectHandler
 
+import numpy as np
 from rake_nltk import Rake
 from sentence_transformers import SentenceTransformer
 
@@ -9,15 +10,16 @@ from django.http import HttpResponse
 
 from scaleup import CHECKPOINTS_PATH
 from scaleup.keyphrase import nucleus_sampling, set_to_set_match
-from scaleup.similarity import TfIdfSimilarity
-from hackathon.settings import KEYPHRASE, PROJECT_RECOMMENDER, SIMILARITY, KP_LM, KP_THRESHOLD, TOP_P
+from scaleup.similarity import LM, TfIdfSimilarity
+from hackathon.settings import DATASETS_PATH, KEYPHRASE, MAX_IRREL_SKILLS, PROJECT_RECOMMENDER, PROJECTS_PER_SKILL, RECOMMENDER_LM, SIMILARITY, KP_LM, KP_THRESHOLD, TOP_P
 
 
 # singleton
 tfidf_sim = None
 rake = None
 sim_model = None
-projects_list = None
+project_list = None
+project_embeddings = None
 recommender_lm = None
 
 # Create your views here.
@@ -26,7 +28,8 @@ def input(request):
 
 
 def analyse(request):
-    global tfidf_sim, rake, sim_model
+    global tfidf_sim, rake, sim_model, project_list,  \
+        project_embeddings, recommender_lm
 
     if request.method == "POST":
         file = request.FILES["resume"]
@@ -81,9 +84,21 @@ def analyse(request):
                 result_dict['rel'].append(rel)
                 if not result_dict.get('irrel', None):
                     result_dict['irrel'] = []
-                result_dict['irrel'].append(rel)
+                result_dict['irrel'].append(irrel)
     
-    if PROJECT_RECOMMENDER == 'LM':
-        pass
-    
+    if result_dict.get('irrel') and PROJECT_RECOMMENDER == 'LM':
+        if not project_list:
+            with open(os.path.join(DATASETS_PATH, 'projects_final.list'), 'r') as f:
+                project_list = f.readlines()
+            project_list = np.array([project.strip() for project in project_list])
+            project_embeddings = np.load(os.path.join(CHECKPOINTS_PATH, 'project_embeddings.npy')) 
+        if not recommender_lm:
+            recommender_lm = LM(model=SentenceTransformer(RECOMMENDER_LM))
+        project_suggestions = []
+        for irrel_list in result_dict['irrel']:
+            irrel_kp_list = list(map(lambda x: x[0], irrel_list[:MAX_IRREL_SKILLS]))
+            scores = recommender_lm.similarity(irrel_kp_list, project_embeddings)
+            idxs = np.argsort(scores)[..., ::-1][..., :PROJECTS_PER_SKILL]
+            project_suggestions.append(set(project_list[idxs].flatten()))
+        print(project_suggestions)
     return render(request, "result.html", result_dict)
