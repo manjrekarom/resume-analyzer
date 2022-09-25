@@ -3,6 +3,7 @@ from urllib.request import HTTPRedirectHandler
 
 import numpy as np
 from rake_nltk import Rake
+from keybert import KeyBERT
 from sentence_transformers import SentenceTransformer
 
 from django.shortcuts import render
@@ -17,6 +18,7 @@ from hackathon.settings import DATASETS_PATH, KEYPHRASE, MAX_IRREL_SKILLS, PROJE
 # singleton
 tfidf_sim = None
 rake = None
+kw_model = None
 sim_model = None
 project_list = None
 project_embeddings = None
@@ -29,7 +31,7 @@ def input(request):
 
 def analyse(request):
     global tfidf_sim, rake, sim_model, project_list,  \
-        project_embeddings, recommender_lm
+        project_embeddings, recommender_lm, kw_model
 
     if request.method == "POST":
         file = request.FILES["resume"]
@@ -66,26 +68,53 @@ def analyse(request):
             query_kp = rake.get_ranked_phrases_with_scores()
             topp_query = nucleus_sampling(query_kp, topp=TOP_P)
 
-            for jd in [jd1, jd2, jd3, jd4, jd5]:
-                if not jd:
-                    continue
-                rake.extract_keywords_from_text(jd)
-                candidate_kp = rake.get_ranked_phrases_with_scores()
-                topp_candidate = nucleus_sampling(candidate_kp, topp=TOP_P)
-                
-                if not sim_model:
-                    sim_model = SentenceTransformer(KP_LM)
-                
-                rel, irrel = set_to_set_match(topp_query, topp_candidate, sim_model, 
-                                              threshold=KP_THRESHOLD)
-                print('Rel, irrel', rel, irrel)
-                if not result_dict.get('rel', None):
-                    result_dict['rel'] = []
-                result_dict['rel'].append(rel)
-                if not result_dict.get('irrel', None):
-                    result_dict['irrel'] = []
-                result_dict['irrel'].append(irrel)
-    
+        for jd in [jd1, jd2, jd3, jd4, jd5]:
+            if not jd:
+                continue
+            rake.extract_keywords_from_text(jd)
+            candidate_kp = rake.get_ranked_phrases_with_scores()
+            topp_candidate = nucleus_sampling(candidate_kp, topp=TOP_P)
+            
+            if not sim_model:
+                sim_model = SentenceTransformer(KP_LM)
+            
+            rel, irrel = set_to_set_match(topp_query, topp_candidate, sim_model, 
+                                            threshold=KP_THRESHOLD)
+            print('Rel, irrel', rel, irrel)
+            if not result_dict.get('rel', None):
+                result_dict['rel'] = []
+            result_dict['rel'].append(rel)
+            if not result_dict.get('irrel', None):
+                result_dict['irrel'] = []
+            result_dict['irrel'].append(irrel)
+    elif KEYPHRASE == 'KeyBERT':
+        if not kw_model:
+            kw_model = KeyBERT(KP_LM)
+            query_kp = kw_model.extract_keywords(resume, keyphrase_ngram_range=(1, 1))
+            query_kp = [(q[1], q[0]) for q in query_kp]
+            topp_query = nucleus_sampling(query_kp, topp=TOP_P)
+
+        for jd in [jd1, jd2, jd3, jd4, jd5]:
+            if not jd:
+                continue
+            candidate_kp = kw_model.extract_keywords(jd, keyphrase_ngram_range=(1, 1))
+            candidate_kp = [(c[1], c[0]) for c in candidate_kp]
+            topp_candidate = nucleus_sampling(candidate_kp, topp=TOP_P)
+            
+            if not sim_model:
+                sim_model = SentenceTransformer(KP_LM)
+            
+            rel, irrel = set_to_set_match(topp_query, topp_candidate, sim_model, 
+                                          threshold=KP_THRESHOLD)
+            print('Rel, irrel', rel, irrel)
+            if not result_dict.get('rel', None):
+                result_dict['rel'] = []
+            result_dict['rel'].append(rel)
+            if not result_dict.get('irrel', None):
+                result_dict['irrel'] = []
+            result_dict['irrel'].append(irrel)
+
+
     if result_dict.get('irrel') and PROJECT_RECOMMENDER == 'LM':
         if not project_list:
             with open(os.path.join(DATASETS_PATH, 'projects_final.list'), 'r') as f:
