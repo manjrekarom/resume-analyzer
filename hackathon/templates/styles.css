@@ -1,0 +1,13 @@
+* { 
+	box-sizing: border-box;
+}
+
+body {
+    margin: 50px 20px;
+    max-width: 800px;
+}
+.layout {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

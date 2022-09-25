@@ -28,19 +28,20 @@ def input(request):
 def analyse(request):
     global tfidf_sim, rake, sim_model
 
-    resume = request.POST["resume"]
-    jd1 = request.POST["jd1"]
-    jd2 = request.POST["jd2"]
-    jd3 = request.POST["jd3"]
-    jd4 = request.POST["jd4"]
-    jd5 = request.POST["jd5"]
+    if request.method == "POST":
+        resume = request.FILES["resume"]
+        jd1 = request.POST["jd1"]
+        jd2 = request.POST["jd2"]
+        jd3 = request.POST["jd3"]
+        jd4 = request.POST["jd4"]
+        jd5 = request.POST["jd5"]
 
     # similarity
     if SIMILARITY == 'TFIDF':
         # singleton
         if not tfidf_sim:
             tfidf_sim = TfIdfSimilarity(os.path.join(CHECKPOINTS_PATH, 'tfidf-1024-stopwords.joblib'))
-        query = tfidf_sim.transform([resume])
+        query = tfidf_sim.transform([str(resume.read())])
         candidates = tfidf_sim.transform([jd1, jd2, jd3, jd4, jd5])
         scores = tfidf_sim.similarity(query, candidates)
         # Matching

@@ -11,18 +11,18 @@
 </head>
 <body>
     <h2>Match your resume</h2>
-    <form action="analyse" method="post">
+    <form action="analyse" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <label>Resume:</label><br>
-        <input type="text" id="resume" name="resume" style="height:300px; width:550px;"><br>
-        </br></br></br></br>
+        <input type="file" name="resume" id="resume"><br>
+        </br></br>
         <label>Job Description</label><br>
         <input type="text" id="jd1" name="jd1"></br></br>
         <input type="text" id="jd2" name="jd2"></br></br>
         <input type="text" id="jd3" name="jd3"></br></br>
         <input type="text" id="jd4" name="jd4"></br></br>
         <input type="text" id="jd5" name="jd5"></br></br>
-        <input type="submit">
+        <button type="submit"> Analyse </button>
     </form>
 </body>
 </html>
