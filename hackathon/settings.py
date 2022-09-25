@@ -116,3 +116,9 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+SIMILARITY = 'TFIDF'  # other values (not implemented): 'BM25', 'msmarco(-MiniLM-L-6-v3)'
+KEYPHRASE = 'RAKE'  # other values (not implemented): 'KeyBERT'
+TOP_P = 0.8
+KP_THRESHOLD = 0.55  # high precision
+KP_LM = 'all-MiniLM-L6-v2'
