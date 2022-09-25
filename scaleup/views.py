@@ -24,7 +24,7 @@ recommender_lm = None
 
 # Create your views here.
 def input(request):
-    return render(request, "input.html");
+    return render(request, "home.html");
 
 
 def analyse(request):
@@ -53,7 +53,7 @@ def analyse(request):
         matches = tfidf_sim.matching(query, candidates, topk=5)
         print('Scores and matches', scores, matches)
         # TODO: Not matching
-        result_dict['sim_scores'] = scores
+        result_dict['sim_scores'] = scores.flatten().tolist()
         result_dict['sim_matches'] = matches
     elif SIMILARITY == 'BM25':
         pass
@@ -99,6 +99,7 @@ def analyse(request):
             irrel_kp_list = list(map(lambda x: x[0], irrel_list[:MAX_IRREL_SKILLS]))
             scores = recommender_lm.similarity(irrel_kp_list, project_embeddings)
             idxs = np.argsort(scores)[..., ::-1][..., :PROJECTS_PER_SKILL]
-            project_suggestions.append(set(project_list[idxs].flatten()))
+            project_suggestions.extend(set(project_list[idxs].flatten()))
+        result_dict['project_suggestions'] = project_suggestions
         print(project_suggestions)
     return render(request, "result.html", result_dict)
