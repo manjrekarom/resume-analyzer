@@ -29,25 +29,29 @@ def analyse(request):
     global tfidf_sim, rake, sim_model
 
     if request.method == "POST":
-        resume = request.FILES["resume"]
+        file = request.FILES["resume"]
+        resume = str(file.read())
         jd1 = request.POST["jd1"]
         jd2 = request.POST["jd2"]
         jd3 = request.POST["jd3"]
         jd4 = request.POST["jd4"]
         jd5 = request.POST["jd5"]
 
+    result_dict = {}
     # similarity
     if SIMILARITY == 'TFIDF':
         # singleton
         if not tfidf_sim:
             tfidf_sim = TfIdfSimilarity(os.path.join(CHECKPOINTS_PATH, 'tfidf-1024-stopwords.joblib'))
-        query = tfidf_sim.transform([str(resume.read())])
+        query = tfidf_sim.transform([resume])
         candidates = tfidf_sim.transform([jd1, jd2, jd3, jd4, jd5])
         scores = tfidf_sim.similarity(query, candidates)
         # Matching
         matches = tfidf_sim.matching(query, candidates, topk=5)
         print('Scores and matches', scores, matches)
         # TODO: Not matching
+        result_dict['sim_scores'] = scores
+        result_dict['sim_matches'] = matches
     elif SIMILARITY == 'BM25':
         pass
     
@@ -72,8 +76,14 @@ def analyse(request):
                 rel, irrel = set_to_set_match(topp_query, topp_candidate, sim_model, 
                                               threshold=KP_THRESHOLD)
                 print('Rel, irrel', rel, irrel)
-
+                if not result_dict.get('rel', None):
+                    result_dict['rel'] = []
+                result_dict['rel'].append(rel)
+                if not result_dict.get('irrel', None):
+                    result_dict['irrel'] = []
+                result_dict['irrel'].append(rel)
+    
     if PROJECT_RECOMMENDER == 'LM':
         pass
     
-    return render(request, "result.html")
+    return render(request, "result.html", result_dict)
