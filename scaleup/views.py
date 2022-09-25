@@ -126,10 +126,16 @@ def analyse(request):
             recommender_lm = LM(model=SentenceTransformer(RECOMMENDER_LM))
         project_suggestions = []
         for irrel_list in result_dict['irrel']:
-            irrel_kp_list = list(map(lambda x: x[0], irrel_list[:MAX_IRREL_SKILLS]))
-            scores = recommender_lm.similarity(irrel_kp_list, project_embeddings)
+            irrel_sublist = irrel_list[:MAX_IRREL_SKILLS]
+            irrel_kp_list = list(map(lambda x: x[0], irrel_sublist))
+            scores = recommender_lm.similarity(irrel_kp_list, project_embeddings) *  \
+                np.expand_dims(np.array(list(map(lambda x: x[1], irrel_sublist))), axis=1)
+            print(scores.shape)
             idxs = np.argsort(scores)[..., ::-1][..., :PROJECTS_PER_SKILL]
-            project_suggestions.extend(set(project_list[idxs].flatten()))
-        result_dict['project_suggestions'] = project_suggestions
+            flattened_scores = np.take_along_axis(scores, idxs, axis=1).flatten()
+            flattened_project_list = project_list[idxs].flatten()
+            for i, score in enumerate(flattened_scores):
+                project_suggestions.append((flattened_project_list[i], score))    
+        result_dict['project_suggestions'] = sorted(project_suggestions, key=lambda x: x[1], reverse=True)
         print(project_suggestions)
     return render(request, "result.html", result_dict)
