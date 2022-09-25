@@ -10,13 +10,15 @@ from django.http import HttpResponse
 from scaleup import CHECKPOINTS_PATH
 from scaleup.keyphrase import nucleus_sampling, set_to_set_match
 from scaleup.similarity import TfIdfSimilarity
-from hackathon.settings import KEYPHRASE, SIMILARITY, KP_LM, KP_THRESHOLD, TOP_P
+from hackathon.settings import KEYPHRASE, PROJECT_RECOMMENDER, SIMILARITY, KP_LM, KP_THRESHOLD, TOP_P
 
 
 # singleton
 tfidf_sim = None
 rake = None
 sim_model = None
+projects_list = None
+recommender_lm = None
 
 # Create your views here.
 def input(request):
@@ -69,4 +71,8 @@ def analyse(request):
                 rel, irrel = set_to_set_match(topp_query, topp_candidate, sim_model, 
                                               threshold=KP_THRESHOLD)
                 print('Rel, irrel', rel, irrel)
+
+    if PROJECT_RECOMMENDER == 'LM':
+        pass
+    
     return render(request, "result.html")

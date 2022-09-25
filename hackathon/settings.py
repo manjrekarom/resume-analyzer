@@ -122,3 +122,4 @@ KEYPHRASE = 'RAKE'  # other values (not implemented): 'KeyBERT'
 TOP_P = 0.8
 KP_THRESHOLD = 0.55  # high precision
 KP_LM = 'all-MiniLM-L6-v2'
+PROJECT_RECOMMENDER = 'LM'  # other values (not implemented): 'TF-IDF'

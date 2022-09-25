@@ -1,14 +1,18 @@
+import os
 import joblib
 from typing import Dict, List
 from collections import defaultdict
 
 import numpy as np
+from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
+
+from scaleup import CHECKPOINTS_PATH
 
 
 class Similarity:
     def __init__(self) -> None:
-        pass
+        super().__init__()
 
     def preprocess(self, text) -> str:
         raise NotImplementedError()
@@ -52,3 +56,12 @@ class TfIdfSimilarity(Similarity):
                 for j, word in enumerate(sorted_vocab_arr[idxs_gt_zero]):
                     hm[word] += pw_sorted[i][idxs_gt_zero[j]] / candidates.shape[0]
         return pw_sorted_idxs
+
+
+class LM(Similarity):
+    def __init__(self, model) -> None:
+        self.model = model
+
+    def similarity(self, query: List[str], candidates) -> np.ndarray:
+        query_emb = self.model.encode(query)
+        return cosine_similarity(query_emb, self.project_embeddings)
