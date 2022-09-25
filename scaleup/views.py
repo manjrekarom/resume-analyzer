@@ -64,9 +64,9 @@ def analyse(request):
     if KEYPHRASE == 'RAKE':
         if not rake:
             rake = Rake()
-            rake.extract_keywords_from_text(resume)
-            query_kp = rake.get_ranked_phrases_with_scores()
-            topp_query = nucleus_sampling(query_kp, topp=TOP_P)
+        rake.extract_keywords_from_text(resume)
+        query_kp = rake.get_ranked_phrases_with_scores()
+        topp_query = nucleus_sampling(query_kp, topp=TOP_P)
 
         for jd in [jd1, jd2, jd3, jd4, jd5]:
             if not jd:
@@ -90,9 +90,10 @@ def analyse(request):
     elif KEYPHRASE == 'KeyBERT':
         if not kw_model:
             kw_model = KeyBERT(KP_LM)
-            query_kp = kw_model.extract_keywords(resume, keyphrase_ngram_range=(1, 1))
-            query_kp = [(q[1], q[0]) for q in query_kp]
-            topp_query = nucleus_sampling(query_kp, topp=TOP_P)
+        
+        query_kp = kw_model.extract_keywords(resume, keyphrase_ngram_range=(1, 1))
+        query_kp = [(q[1], q[0]) for q in query_kp]
+        topp_query = nucleus_sampling(query_kp, topp=TOP_P)
 
         for jd in [jd1, jd2, jd3, jd4, jd5]:
             if not jd:
@@ -116,7 +117,7 @@ def analyse(request):
 
 
     if result_dict.get('irrel') and PROJECT_RECOMMENDER == 'LM':
-        if not project_list:
+        if project_list is None:
             with open(os.path.join(DATASETS_PATH, 'projects_final.list'), 'r') as f:
                 project_list = f.readlines()
             project_list = np.array([project.strip() for project in project_list])

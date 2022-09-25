@@ -125,9 +125,9 @@ DATASETS_PATH = './datasets'
 SIMILARITY = 'TFIDF'  # other values (not implemented): 'BM25', 'msmarco(-MiniLM-L-6-v3)'
 
 # keyphrase
-KEYPHRASE = 'KeyBERT'  # other values (not implemented): 'KeyBERT'
+KEYPHRASE = 'RAKE'  # other values (not implemented): 'KeyBERT'
 TOP_P = 0.8
-KP_THRESHOLD = 0.55  # high precision
+KP_THRESHOLD = 0.4  # high precision
 KP_LM = 'all-MiniLM-L6-v2'
 
 # recommender
