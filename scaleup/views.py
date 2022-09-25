@@ -91,14 +91,14 @@ def analyse(request):
         if not kw_model:
             kw_model = KeyBERT(KP_LM)
         
-        query_kp = kw_model.extract_keywords(resume, keyphrase_ngram_range=(1, 1))
+        query_kp = kw_model.extract_keywords(resume, keyphrase_ngram_range=(1, 3), )
         query_kp = [(q[1], q[0]) for q in query_kp]
         topp_query = nucleus_sampling(query_kp, topp=TOP_P)
 
         for jd in [jd1, jd2, jd3, jd4, jd5]:
             if not jd:
                 continue
-            candidate_kp = kw_model.extract_keywords(jd, keyphrase_ngram_range=(1, 1))
+            candidate_kp = kw_model.extract_keywords(jd, keyphrase_ngram_range=(1, 3), )
             candidate_kp = [(c[1], c[0]) for c in candidate_kp]
             topp_candidate = nucleus_sampling(candidate_kp, topp=TOP_P)
             
